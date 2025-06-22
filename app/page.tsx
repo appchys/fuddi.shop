@@ -1,16 +1,34 @@
 "use client";
 
-import Image from "next/image";
 import styles from "./page.module.css";
 import React, { useEffect, useState } from "react";
 import { db } from "./firebase-config";
 import { collection, getDocs } from "firebase/firestore";
+import Image from "next/image";
+
+interface Store {
+  id: string;
+  name: string;
+  description: string;
+  coverUrl?: string;
+  imageUrl?: string;
+  // otros campos si los necesitas
+}
+
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price?: number;
+  image?: string;
+  // otros campos si los necesitas
+}
 
 export default function Home() {
-  const [stores, setStores] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
-  // Cargar tiendas desde Firestore
   useEffect(() => {
     const fetchStores = async () => {
       const storesCol = collection(db, "stores");
@@ -18,13 +36,12 @@ export default function Home() {
       const storeList = storeSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      })) as Store[];
       setStores(storeList);
     };
     fetchStores();
   }, []);
 
-  // Cargar productos desde Firestore
   useEffect(() => {
     const fetchProducts = async () => {
       const productsCol = collection(db, "products");
@@ -32,19 +49,17 @@ export default function Home() {
       const productList = productSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }));
+      })) as Product[];
       setProducts(productList);
     };
     fetchProducts();
   }, []);
 
-  // Función para scroll suave
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Botón hamburguesa (placeholder)
   const toggleControlPanel = () => {
     alert("Abrir panel de control (implementa la lógica en React)");
   };
@@ -87,9 +102,11 @@ export default function Home() {
               <div key={store.id} className="store">
                 {/* Imagen de portada */}
                 {store.coverUrl && (
-                  <img
+                  <Image
                     src={store.coverUrl}
                     alt={`Portada de ${store.name}`}
+                    width={400}
+                    height={120}
                     className="store-cover-img"
                     style={{
                       width: "100%",
@@ -101,9 +118,11 @@ export default function Home() {
                 )}
                 {/* Imagen de perfil */}
                 {store.imageUrl && (
-                  <img
+                  <Image
                     src={store.imageUrl}
                     alt={`Perfil de ${store.name}`}
+                    width={60}
+                    height={60}
                     className="store-profile-img"
                     style={{
                       width: "60px",
@@ -131,11 +150,12 @@ export default function Home() {
             {products.length === 0 && <p>Cargando productos...</p>}
             {products.map((product) => (
               <div key={product.id} className="product-card">
-                {/* Si tienes campo de imagen en productos, agrégalo aquí */}
                 {product.image && (
-                  <img
+                  <Image
                     src={product.image}
                     alt={product.name}
+                    width={400}
+                    height={120}
                     className="product-img"
                     style={{
                       width: "100%",
@@ -153,7 +173,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Botón tipo hamburguesa flotante */}
         <button
           id="control-panel-toggle"
           className="hamburger-btn"
@@ -163,10 +182,7 @@ export default function Home() {
           <i className="bi bi-list"></i>
         </button>
       </main>
-
-      {/* Sidebar del control panel */}
       <div id="control-panel-container"></div>
-
       <footer className={styles.footer}>
         <p>© 2025 Allimarket. Todos los derechos reservados.</p>
       </footer>
