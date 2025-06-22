@@ -53,7 +53,7 @@ export default function StoreProfile() {
       // 2. Cargar productos
       const productsCol = collection(db, `stores/${storeId}/products`);
       const productsSnap = await getDocs(productsCol);
-      let products: Product[] = [];
+      const products: Product[] = [];
       productsSnap.forEach((doc) => {
         const data = doc.data() as Product;
         if (!data.hidden) {
