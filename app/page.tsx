@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { db } from "./firebase-config";
 import { collection, getDocs } from "firebase/firestore";
 import Image from "next/image";
+import Link from "next/link";
 
 interface Store {
   id: string;
@@ -15,19 +16,21 @@ interface Store {
   // otros campos si los necesitas
 }
 
-
 interface Product {
   id: string;
   name: string;
   description: string;
   price?: number;
   image?: string;
+  storeName?: string;
+  storeImageUrl?: string;
   // otros campos si los necesitas
 }
 
 export default function Home() {
   const [stores, setStores] = useState<Store[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [randomCover, setRandomCover] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -44,15 +47,50 @@ export default function Home() {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const productsCol = collection(db, "products");
-      const productSnapshot = await getDocs(productsCol);
-      const productList = productSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Product[];
-      setProducts(productList);
+      const storesCol = collection(db, "stores");
+      const storeSnapshot = await getDocs(storesCol);
+      const allProducts: Product[] = [];
+      for (const storeDoc of storeSnapshot.docs) {
+        const storeId = storeDoc.id;
+        const storeData = storeDoc.data() as Store;
+        const productsCol = collection(db, `stores/${storeId}/products`);
+        const productSnapshot = await getDocs(productsCol);
+        productSnapshot.forEach((productDoc) => {
+          const product = productDoc.data() as Product;
+          allProducts.push({
+            ...product,
+            id: productDoc.id,
+            storeName: storeData.name,
+            storeImageUrl: storeData.imageUrl,
+          });
+        });
+      }
+      setProducts(allProducts);
     };
     fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchRandomCover = async () => {
+      const storesCol = collection(db, "stores");
+      const storeSnapshot = await getDocs(storesCol);
+      const productImages: string[] = [];
+      for (const storeDoc of storeSnapshot.docs) {
+        const storeId = storeDoc.id;
+        const productsCol = collection(db, `stores/${storeId}/products`);
+        const productsSnapshot = await getDocs(productsCol);
+        productsSnapshot.forEach((productDoc) => {
+          const product = productDoc.data();
+          if (product.imageUrl) productImages.push(product.imageUrl);
+        });
+      }
+      if (productImages.length > 0) {
+        const randomImage =
+          productImages[Math.floor(Math.random() * productImages.length)];
+        setRandomCover(randomImage);
+      }
+    };
+    fetchRandomCover();
   }, []);
 
   const scrollToSection = (id: string) => {
@@ -67,7 +105,16 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <header>
-        <div id="random-cover" className="random-cover"></div>
+        <div
+          id="random-cover"
+          className="random-cover"
+          style={{
+            backgroundImage: randomCover ? `url(${randomCover})` : undefined,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            minHeight: "200px",
+          }}
+        ></div>
         <h1 className="site-title">Fuddi</h1>
         <p className="site-slogan">Para cualquier antojo</p>
         <nav>
@@ -85,7 +132,10 @@ export default function Home() {
               </button>
             </li>
             <li>
-              <button type="button" onClick={() => (window.location.href = "register.html")}>
+              <button
+                type="button"
+                onClick={() => (window.location.href = "register.html")}
+              >
                 <i className="bi bi-person-plus"></i>
                 Registrarse
               </button>
@@ -99,47 +149,53 @@ export default function Home() {
           <div id="stores-container" className="grid">
             {stores.length === 0 && <p>Cargando tiendas...</p>}
             {stores.map((store) => (
-              <div key={store.id} className="store">
-                {/* Imagen de portada */}
-                {store.coverUrl && (
-                  <Image
-                    src={store.coverUrl}
-                    alt={`Portada de ${store.name}`}
-                    width={400}
-                    height={120}
-                    className="store-cover-img"
-                    style={{
-                      width: "100%",
-                      height: "120px",
-                      objectFit: "cover",
-                      borderRadius: "8px 8px 0 0",
-                    }}
-                  />
-                )}
-                {/* Imagen de perfil */}
-                {store.imageUrl && (
-                  <Image
-                    src={store.imageUrl}
-                    alt={`Perfil de ${store.name}`}
-                    width={60}
-                    height={60}
-                    className="store-profile-img"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      objectFit: "cover",
-                      borderRadius: "50%",
-                      marginTop: "-30px",
-                      border: "3px solid #fff",
-                      position: "relative",
-                      left: "10px",
-                      background: "#fff",
-                    }}
-                  />
-                )}
-                <h3>{store.name}</h3>
-                <p>{store.description}</p>
-              </div>
+              <Link
+                key={store.id}
+                href={`/${store.id}`}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <div className="store" style={{ cursor: "pointer" }}>
+                  {/* Imagen de portada */}
+                  {store.coverUrl && (
+                    <Image
+                      src={store.coverUrl}
+                      alt={`Portada de ${store.name}`}
+                      width={400}
+                      height={120}
+                      className="store-cover-img"
+                      style={{
+                        width: "100%",
+                        height: "120px",
+                        objectFit: "cover",
+                        borderRadius: "8px 8px 0 0",
+                      }}
+                    />
+                  )}
+                  {/* Imagen de perfil */}
+                  {store.imageUrl && (
+                    <Image
+                      src={store.imageUrl}
+                      alt={`Perfil de ${store.name}`}
+                      width={60}
+                      height={60}
+                      className="store-profile-img"
+                      style={{
+                        width: "60px",
+                        height: "60px",
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                        marginTop: "-30px",
+                        border: "3px solid #fff",
+                        position: "relative",
+                        left: "10px",
+                        background: "#fff",
+                      }}
+                    />
+                  )}
+                  <h3>{store.name}</h3>
+                  <p>{store.description}</p>
+                </div>
+              </Link>
             ))}
           </div>
         </section>
