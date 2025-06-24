@@ -1,7 +1,6 @@
 import { db } from "../firebase-config";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import StoreProfileClient from "./StoreProfileClient";
-import type { Metadata } from "next";
 
 interface Store {
   id: string;
