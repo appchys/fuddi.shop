@@ -120,13 +120,13 @@ export default function Home() {
         <nav>
           <ul>
             <li>
-              <button type="button" onClick={() => scrollToSection("stores")}>
+              <button type="button" className="icon-btn" onClick={() => scrollToSection("stores")}>
                 <i className="bi bi-shop"></i>
                 Tiendas
               </button>
             </li>
             <li>
-              <button type="button" onClick={() => scrollToSection("products")}>
+              <button type="button" className="icon-btn" onClick={() => scrollToSection("products")}>
                 <i className="bi bi-box-seam"></i>
                 Productos
               </button>
@@ -134,6 +134,7 @@ export default function Home() {
             <li>
               <button
                 type="button"
+                className="icon-btn"
                 onClick={() => (window.location.href = "register.html")}
               >
                 <i className="bi bi-person-plus"></i>

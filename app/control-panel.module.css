@@ -1,0 +1,193 @@
+/* Sidebar del Panel de Control */
+.panelSidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 340px;
+    height: 100%;
+    background: #fff;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.08);
+    z-index: 200;
+    transition: right 0.3s;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.panelSidebarClosed {
+    right: -350px;
+    pointer-events: none;
+}
+
+.panelSidebarOpen {
+    right: 0;
+}
+
+/* Botón flotante para abrir el panel */
+.panelFloatingBtn {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    z-index: 100;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.panelFloatingBtn:hover {
+    background: #f5f5f5;
+}
+
+/* Botón cerrar */
+.panelCloseBtn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.2s;
+}
+.panelCloseBtn:hover {
+    color: #ff6f91;
+}
+
+/* Título */
+.panelTitle {
+    margin-top: 0;
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 18px;
+}
+
+/* Info usuario */
+.userInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Secciones de Tienda y Perfil */
+.clientInfo, .storeInfo {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.clientInfo h3, .storeInfo h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* Foto y nombre */
+.profileHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.profileHeader img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    object-fit: cover;
+}
+
+.profileHeader .defaultAvatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #ccc;
+    border: 2px solid #ddd;
+}
+
+.profileHeader .name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Enlaces */
+.sectionLinks {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sectionLinks li {
+    margin-bottom: 10px;
+}
+
+.sectionLinks li a {
+    text-decoration: none;
+    color: #007bff;
+    font-size: 16px;
+    transition: color 0.3s;
+}
+
+.sectionLinks li a:hover {
+    color: #0056b3;
+}
+
+/* Botón crear perfil/tienda */
+.createBtn {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+.createBtn:hover {
+    background: #218838;
+}
+
+/* Botón cerrar sesión */
+.logoutBtn {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 20px;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: color 0.3s;
+}
+.logoutBtn:hover {
+    color: #ff6f91;
+}
+
+/* Botón Google */
+.googleLoginBtn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    background: #4285f4;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.3s;
+}
+.googleLoginBtn:hover {
+    background: #357ae8;
+}

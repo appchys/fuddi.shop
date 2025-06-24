@@ -5,6 +5,9 @@ import { useParams } from "next/navigation";
 import { db } from "../firebase-config";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import Image from "next/image";
+import styles from "./store.module.css";
+import { useCart } from "../CartContext";
+import Head from "next/head";
 
 interface Store {
   id: string;
@@ -35,6 +38,7 @@ export default function StoreProfile() {
   const [productsByCollection, setProductsByCollection] = useState<Record<string, Product[]>>({});
   const [collectionsOrder, setCollectionsOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchStoreAndProducts = async () => {
@@ -94,9 +98,24 @@ export default function StoreProfile() {
 
   return (
     <div>
+      {store && (
+        <Head>
+          <title>{store ? `${store.name} - Catálogo Fuddi` : "Catálogo Fuddi"}</title>
+          <meta property="og:title" content={store.name} />
+          <meta property="og:description" content={store.description} />
+          <meta property="og:image" content={store.imageUrl || store.coverUrl || "/default-logo.png"} />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content={`https://fuddishop.vercel.app//${store.id}`} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={store.name} />
+          <meta name="twitter:description" content={store.description} />
+          <meta name="twitter:image" content={store.imageUrl || store.coverUrl || "/default-logo.png"} />
+        </Head>
+      )}
+
       {/* Portada */}
       <div
-        className="store-cover"
+        className={styles.storeCover}
         style={{
           width: "100%",
           height: "200px",
@@ -131,50 +150,80 @@ export default function StoreProfile() {
       </div>
 
       {/* Acciones (solo estructura visual, lógica de autenticación pendiente) */}
-      <div className="store-actions" style={{ display: "flex", justifyContent: "center", gap: "10px", margin: "10px 0" }}>
-        <button className="btn"><i className="bi bi-person-plus"></i> Seguir</button>
+      <div style={{ display: "flex", justifyContent: "center", gap: "10px", margin: "10px 0" }}>
+        <button className="icon-btn">
+          <i className="bi bi-person-plus"></i>
+          Seguir
+        </button>
         {store.phone && (
           <a
-            className="btn"
+            className="icon-btn"
             href={`https://wa.me/${store.phone.replace(/\D/g, "").replace(/^0/, "593")}`}
             target="_blank"
             rel="noopener noreferrer"
           >
-            <i className="bi bi-whatsapp"></i> Whatsapp
+            <i className="bi bi-whatsapp"></i>
+            Whatsapp
           </a>
         )}
-        <button className="btn"><i className="bi bi-cart"></i> Carrito</button>
+        <button className="icon-btn">
+          <i className="bi bi-cart"></i>
+          Carrito
+        </button>
       </div>
 
       {/* Productos agrupados por colección */}
       <main style={{ padding: 20 }}>
         {collectionsOrder.map((col) => (
           <div key={col} className="collection-container">
-            <h2 className="collection-title">{col}</h2>
+            <h2 className={styles.collectionTitle}>{col}</h2>
             {productsByCollection[col].map((product) => (
-              <div key={product.id} className="product" style={{ display: "flex", alignItems: "center", gap: 18, padding: "12px 18px" }}>
-                <div className="product-image-container" style={{ width: 90, height: 90, borderRadius: 8, overflow: "hidden", background: "#f5f5f5" }}>
+              <div key={product.id} className={styles.product}>
+                <div className={styles.productImageContainer}>
                   {product.imageUrl ? (
                     <Image
                       src={product.imageUrl}
                       alt={product.name}
                       width={90}
                       height={90}
-                      className="product-image"
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      className={styles.productImage}
+                    />
+                  ) : store.imageUrl ? (
+                    <Image
+                      src={store.imageUrl}
+                      alt={store.name}
+                      width={90}
+                      height={90}
+                      className={styles.productImage}
                     />
                   ) : (
-                    <div className="placeholder-image" style={{ width: "100%", height: "100%", background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", color: "#666" }}>
+                    <div className={styles.placeholderImage}>
                       <span>{product.name.charAt(0).toUpperCase()}</span>
                     </div>
                   )}
                 </div>
-                <div className="product-info" style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-                  <h3 className="product-name">{product.name}</h3>
-                  <p className="product-description">{product.description}</p>
-                  <p className="product-price">${product.price ? product.price.toFixed(2) : "0.00"}</p>
+                <div className={styles.productInfo}>
+                  <h3 className={styles.productName}>{product.name}</h3>
+                  <p className={styles.productDescription}>{product.description}</p>
+                  <p className={styles.productPrice}>${product.price ? product.price.toFixed(2) : "0.00"}</p>
                 </div>
-                {/* Aquí puedes agregar botones de acción para el producto */}
+                <div className={styles.addToCartContainer}>
+                  <button
+                    className={styles.addToCartBtn}
+                    title="Agregar al carrito"
+                    onClick={() =>
+                      addToCart({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        imageUrl: product.imageUrl || store.imageUrl,
+                        quantity: 1,
+                      })
+                    }
+                  >
+                    <i className="bi bi-plus"></i>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
