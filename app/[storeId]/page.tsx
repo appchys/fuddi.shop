@@ -8,6 +8,8 @@ import Image from "next/image";
 import styles from "./store.module.css";
 import { useCart } from "../CartContext";
 import Head from "next/head";
+import type { User } from "firebase/auth";
+import Link from "next/link";
 
 interface Store {
   id: string;
@@ -39,6 +41,7 @@ export default function StoreProfile() {
   const [collectionsOrder, setCollectionsOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchStoreAndProducts = async () => {
@@ -170,6 +173,10 @@ export default function StoreProfile() {
           <i className="bi bi-cart"></i>
           Carrito
         </button>
+        <Link href="/store-orders" className="icon-btn">
+          <i className="bi bi-receipt"></i>
+          Pedidos recibidos
+        </Link>
       </div>
 
       {/* Productos agrupados por colección */}
