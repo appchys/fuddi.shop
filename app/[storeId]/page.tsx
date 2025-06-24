@@ -58,7 +58,14 @@ export async function generateMetadata({ params }: { params: { storeId: string }
   };
 }
 
-export default async function StoreProfilePage({ params }: { params: { storeId: string } }) {
+type Props = {
+  params: {
+    storeId: string;
+  };
+};
+
+export default async function StoreProfilePage(props: Props) {
+  const { params } = props;
   // Carga datos de la tienda y productos en el servidor
   const storeRef = doc(db, "stores", params.storeId);
   const storeSnap = await getDoc(storeRef);
