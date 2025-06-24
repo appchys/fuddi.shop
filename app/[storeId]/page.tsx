@@ -9,6 +9,7 @@ import styles from "./store.module.css";
 import { useCart } from "../CartContext";
 import Head from "next/head";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 interface Store {
   id: string;
@@ -30,6 +31,39 @@ interface Product {
   collection?: string[] | string;
   order?: number;
   hidden?: boolean;
+}
+
+export async function generateMetadata({ params }: { params: { storeId: string } }): Promise<Metadata> {
+  // Carga los datos de la tienda desde Firestore
+  const storeRef = doc(db, "stores", params.storeId);
+  const storeSnap = await getDoc(storeRef);
+  if (!storeSnap.exists()) {
+    return {
+      title: "Catálogo Fuddi",
+      description: "Catálogo de tiendas en Fuddi",
+      openGraph: {
+        images: ["/default-logo.png"],
+      },
+    };
+  }
+  const store = storeSnap.data() as Store;
+  return {
+    title: `${store.name} - Catálogo Fuddi`,
+    description: store.description,
+    openGraph: {
+      title: store.name,
+      description: store.description,
+      images: [store.imageUrl || store.coverUrl || "/default-logo.png"],
+      url: `https://fuddishop.vercel.app/${params.storeId}`,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: store.name,
+      description: store.description,
+      images: [store.imageUrl || store.coverUrl || "/default-logo.png"],
+    },
+  };
 }
 
 export default function StoreProfile() {
@@ -99,19 +133,7 @@ export default function StoreProfile() {
 
   return (
     <div>
-      <Head>
-        <title>{store ? `${store.name} - Catálogo Fuddi` : "Catálogo Fuddi"}</title>
-        <meta property="og:title" content={store.name} />
-        <meta property="og:description" content={store.description} />
-        <meta property="og:image" content={store.imageUrl || store.coverUrl || "/default-logo.png"} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://fuddishop.vercel.app/${store.id}`} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={store.name} />
-        <meta name="twitter:description" content={store.description} />
-        <meta name="twitter:image" content={store.imageUrl || store.coverUrl || "/default-logo.png"} />
-      </Head>
-
+      
       {/* Portada */}
       <div
         className={styles.storeCover}
