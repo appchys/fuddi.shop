@@ -2,22 +2,57 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { auth, googleProvider, db, storage } from "../firebase-config";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, User } from "firebase/auth";
 import { doc, getDoc, setDoc, collection, addDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import styles from "./checkout.module.css";
 
+// --- INTERFACES ---
+interface Address {
+  reference: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  createdAt?: string;
+}
+
+interface UserData {
+  name: string;
+  phone: string;
+  email: string;
+  addresses?: Address[];
+  [key: string]: unknown;
+}
+
+interface StoreData {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl?: string;
+  coverUrl?: string;
+  shippingFee?: number;
+  [key: string]: unknown;
+}
+
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  quantity: number;
+}
+
+// --- COMPONENT ---
 export default function Checkout() {
   const searchParams = useSearchParams();
   const storeId = searchParams.get("storeId");
 
-  // Estados principales
-  const [user, setUser] = useState<any>(null);
-  const [userData, setUserData] = useState<any>(null);
-  const [storeData, setStoreData] = useState<any>(null);
-  const [cart, setCart] = useState<any[]>([]);
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  // Estados principales tipados
+  const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [storeData, setStoreData] = useState<StoreData | null>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [scheduledDate, setScheduledDate] = useState<string>("");
@@ -39,7 +74,7 @@ export default function Checkout() {
   const checkUserExists = async (userId: string) => {
     const userDocRef = doc(db, "users", userId);
     const userSnap = await getDoc(userDocRef);
-    if (userSnap.exists()) return { exists: true, type: "client", data: userSnap.data() };
+    if (userSnap.exists()) return { exists: true, type: "client", data: userSnap.data() as UserData };
     return { exists: false };
   };
 
@@ -51,10 +86,10 @@ export default function Checkout() {
       if (user) {
         // Cargar perfil de usuario
         const userCheck = await checkUserExists(user.uid);
-        if (userCheck.exists) {
+        if (userCheck.exists && userCheck.data) {
           setUserData(userCheck.data);
           setAddresses(
-            userCheck.data && Array.isArray(userCheck.data.addresses)
+            Array.isArray(userCheck.data.addresses)
               ? userCheck.data.addresses
               : []
           );
@@ -67,7 +102,7 @@ export default function Checkout() {
       const fetchStore = async () => {
         const storeDocRef = doc(db, "stores", storeId);
         const storeSnap = await getDoc(storeDocRef);
-        if (storeSnap.exists()) setStoreData(storeSnap.data());
+        if (storeSnap.exists()) setStoreData(storeSnap.data() as StoreData);
       };
       fetchStore();
       // Cargar carrito desde localStorage
@@ -80,13 +115,13 @@ export default function Checkout() {
   // Guardar perfil de usuario
   const saveUserProfile = async (name: string, phone: string) => {
     if (!user) return;
-    const newUserData = { name, phone, createdAt: new Date().toISOString(), email: user.email };
+    const newUserData: UserData = { name, phone, createdAt: new Date().toISOString(), email: user.email || "" };
     await setDoc(doc(db, "users", user.uid), newUserData, { merge: true });
     setUserData(newUserData);
   };
 
   // Guardar dirección
-  const saveAddress = async (address: any) => {
+  const saveAddress = async (address: Address) => {
     if (!user) return;
     const newAddresses = [...addresses, address];
     await setDoc(doc(db, "users", user.uid), { addresses: newAddresses }, { merge: true });
@@ -99,7 +134,7 @@ export default function Checkout() {
     if (!user || !userData) return alert("Debes iniciar sesión y tener perfil.");
     if (deliveryType === "delivery" && !selectedAddress) return alert("Selecciona una dirección.");
     if (!paymentMethod) return alert("Selecciona un método de pago.");
-    let paymentProofUrl = null;
+    let paymentProofUrl: string | null = null;
     if (paymentMethod === "Transferencia" && paymentProof) {
       const storagePath = `payment-proofs/${user.uid}/${Date.now()}_${paymentProof.name}`;
       const storageRef = ref(storage, storagePath);
@@ -107,7 +142,7 @@ export default function Checkout() {
       paymentProofUrl = await getDownloadURL(uploadResult.ref);
     }
     // Calcula totales
-    const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
     const shipping = storeData?.shippingFee || 0;
     const serviceFee = 0.25;
     const total = subtotal + shipping + serviceFee;
@@ -183,14 +218,14 @@ export default function Checkout() {
               </li>
             ))}
           </ul>
-          <div>Subtotal: ${cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}</div>
+          <div>Subtotal: ${cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0).toFixed(2)}</div>
           <div>Envío: ${storeData.shippingFee?.toFixed(2) || "0.00"}</div>
           <div>Servicio: $0.25</div>
           <div>
             <b>
               Total: $
               {(
-                cart.reduce((sum, item) => sum + item.price * item.quantity, 0) +
+                cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0) +
                 (storeData.shippingFee || 0) +
                 0.25
               ).toFixed(2)}
@@ -328,10 +363,10 @@ function AddressSelector({
   onSelect,
   onAdd,
 }: {
-  addresses: any[];
-  selected: any;
-  onSelect: (addr: any) => void;
-  onAdd: (addr: any) => void;
+  addresses: Address[];
+  selected: Address | null;
+  onSelect: (addr: Address) => void;
+  onAdd: (addr: Address) => void;
 }) {
   const [showForm, setShowForm] = useState(false);
   const [reference, setReference] = useState("");

@@ -1,19 +1,17 @@
 "use client";
 import { useCart } from "./CartContext";
-import styles from "./[storeId]/store.module.css";
+// import styles from "./[storeId]/store.module.css"; // Elimina si no usas styles
 import { useState } from "react";
-import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import Image from "next/image"; // Usa Image de Next.js
 
 export default function CartSidebar() {
   const { cart, removeFromCart, clearCart, incrementQuantity } = useCart();
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const params = useParams();
-  const searchParams = useSearchParams();
   const storeId = params.storeId as string;
 
-  // Puedes abrir el sidebar desde cualquier parte llamando setOpen(true)
-  // Aquí lo mostramos con un botón fijo abajo a la derecha
   return (
     <>
       <button
@@ -98,8 +96,8 @@ export default function CartSidebar() {
           <ul style={{ listStyle: "none", padding: 0, flex: 1, overflowY: "auto" }}>
             {cart.map((item) => (
               <li key={item.id} style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-                <img
-                  src={item.imageUrl}
+                <Image
+                  src={item.imageUrl || "/default.png"}
                   alt={item.name}
                   width={48}
                   height={48}
@@ -206,11 +204,4 @@ export default function CartSidebar() {
       )}
     </>
   );
-}
-
-export function CheckoutPage() {
-  const searchParams = useSearchParams();
-  const storeId = searchParams.get("storeId");
-
-  // ...usa storeId para buscar la tienda...
 }
