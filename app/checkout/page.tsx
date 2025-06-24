@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { auth, googleProvider, db, storage } from "../firebase-config";
 import { signInWithPopup, User } from "firebase/auth";
@@ -42,7 +42,15 @@ interface CartItem {
 }
 
 // --- COMPONENT ---
-export default function Checkout() {
+export default function CheckoutPageWrapper() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <Checkout />
+    </Suspense>
+  );
+}
+
+function Checkout() {
   const searchParams = useSearchParams();
   const storeId = searchParams.get("storeId");
 
