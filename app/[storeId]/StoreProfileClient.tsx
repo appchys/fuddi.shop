@@ -1,8 +1,5 @@
 "use client";
 
-import { useCart } from "../CartContext";
-import Image from "next/image";
-
 interface Store {
   id: string;
   name: string;
