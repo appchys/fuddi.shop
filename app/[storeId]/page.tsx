@@ -8,7 +8,6 @@ import Image from "next/image";
 import styles from "./store.module.css";
 import { useCart } from "../CartContext";
 import Head from "next/head";
-import type { User } from "firebase/auth";
 import Link from "next/link";
 
 interface Store {
