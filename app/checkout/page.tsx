@@ -65,8 +65,10 @@ export default function Checkout() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       setUser(result.user);
-    } catch (error: any) {
-      alert("Error al iniciar sesión: " + error.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        alert("Error al iniciar sesión: " + error.message);
+      }
     }
   };
 
@@ -107,7 +109,18 @@ export default function Checkout() {
       fetchStore();
       // Cargar carrito desde localStorage
       const cartKey = `cart_${storeId}`;
-      setCart(JSON.parse(localStorage.getItem(cartKey) || "[]"));
+      const storedCart = localStorage.getItem(cartKey);
+      if (storedCart) {
+        try {
+          const parsed = JSON.parse(storedCart);
+          if (Array.isArray(parsed)) setCart(parsed as CartItem[]);
+          else setCart([]);
+        } catch {
+          setCart([]);
+        }
+      } else {
+        setCart([]);
+      }
     }
     return () => unsub();
   }, [storeId]);

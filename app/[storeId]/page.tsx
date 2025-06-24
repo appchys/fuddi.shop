@@ -41,7 +41,6 @@ export default function StoreProfile() {
   const [collectionsOrder, setCollectionsOrder] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
-  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchStoreAndProducts = async () => {
@@ -101,20 +100,18 @@ export default function StoreProfile() {
 
   return (
     <div>
-      {store && (
-        <Head>
-          <title>{store ? `${store.name} - Catálogo Fuddi` : "Catálogo Fuddi"}</title>
-          <meta property="og:title" content={store.name} />
-          <meta property="og:description" content={store.description} />
-          <meta property="og:image" content={store.imageUrl || store.coverUrl || "/default-logo.png"} />
-          <meta property="og:type" content="website" />
-          <meta property="og:url" content={`https://fuddishop.vercel.app//${store.id}`} />
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={store.name} />
-          <meta name="twitter:description" content={store.description} />
-          <meta name="twitter:image" content={store.imageUrl || store.coverUrl || "/default-logo.png"} />
-        </Head>
-      )}
+      <Head>
+        <title>{store ? `${store.name} - Catálogo Fuddi` : "Catálogo Fuddi"}</title>
+        <meta property="og:title" content={store.name} />
+        <meta property="og:description" content={store.description} />
+        <meta property="og:image" content={store.imageUrl || store.coverUrl || "/default-logo.png"} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`https://fuddishop.vercel.app/${store.id}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={store.name} />
+        <meta name="twitter:description" content={store.description} />
+        <meta name="twitter:image" content={store.imageUrl || store.coverUrl || "/default-logo.png"} />
+      </Head>
 
       {/* Portada */}
       <div
@@ -152,7 +149,7 @@ export default function StoreProfile() {
         <p id="store-description">{store.description}</p>
       </div>
 
-      {/* Acciones (solo estructura visual, lógica de autenticación pendiente) */}
+      {/* Acciones */}
       <div style={{ display: "flex", justifyContent: "center", gap: "10px", margin: "10px 0" }}>
         <button className="icon-btn">
           <i className="bi bi-person-plus"></i>

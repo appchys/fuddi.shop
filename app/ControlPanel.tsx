@@ -1,23 +1,40 @@
 "use client";
 import { useEffect, useState } from "react";
 import { auth, googleProvider, db } from "./firebase-config";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, User } from "firebase/auth";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import styles from "./control-panel.module.css";
+import Image from "next/image";
+import Link from "next/link";
+
+interface StoreData {
+  id: string;
+  name?: string;
+  imageUrl?: string;
+  [key: string]: unknown;
+}
+
+interface ClientData {
+  name?: string;
+  profilePic?: string;
+  [key: string]: unknown;
+}
 
 export default function ControlPanel() {
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [clientData, setClientData] = useState<any>(null);
-  const [storeData, setStoreData] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [clientData, setClientData] = useState<ClientData | null>(null);
+  const [storeData, setStoreData] = useState<StoreData | null>(null);
 
   // Login con Google
   const loginWithGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       setUser(result.user);
-    } catch (error: any) {
-      alert("Error al iniciar sesión: " + error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert("Error al iniciar sesión: " + error.message);
+      }
     }
   };
 
@@ -38,7 +55,7 @@ export default function ControlPanel() {
         const userDoc = doc(db, "users", user.uid);
         const userSnapshot = await getDoc(userDoc);
         if (userSnapshot.exists()) {
-          setClientData(userSnapshot.data());
+          setClientData(userSnapshot.data() as ClientData);
         } else {
           setClientData(null);
         }
@@ -47,7 +64,7 @@ export default function ControlPanel() {
         const storeQuery = query(collection(db, "stores"), where("owner", "==", user.uid));
         const storeSnapshot = await getDocs(storeQuery);
         if (!storeSnapshot.empty) {
-          setStoreData({ ...storeSnapshot.docs[0].data(), id: storeSnapshot.docs[0].id });
+          setStoreData({ ...storeSnapshot.docs[0].data(), id: storeSnapshot.docs[0].id } as StoreData);
         } else {
           setStoreData(null);
         }
@@ -114,7 +131,13 @@ export default function ControlPanel() {
                   <h3>Tienda</h3>
                   <div className={styles.profileHeader}>
                     {storeData.imageUrl ? (
-                      <img src={storeData.imageUrl} alt="Foto de tienda" />
+                      <Image
+                        src={storeData.imageUrl}
+                        alt="Foto de tienda"
+                        width={48}
+                        height={48}
+                        className={styles.avatarImg}
+                      />
                     ) : (
                       <div className={styles.defaultAvatar}></div>
                     )}
@@ -122,13 +145,13 @@ export default function ControlPanel() {
                   </div>
                   <ul className={styles.sectionLinks}>
                     <li>
-                      <a href="/store-orders">Pedidos recibidos</a>
+                      <Link href="/store-orders">Pedidos recibidos</Link>
                     </li>
                     <li>
-                      <a href={`/store-products?storeId=${storeData.id}`}>Mis productos</a>
+                      <Link href={`/store-products?storeId=${storeData.id}`}>Mis productos</Link>
                     </li>
                     <li>
-                      <a href={`/store-edit?storeId=${storeData.id}`}>Editar tienda</a>
+                      <Link href={`/store-edit?storeId=${storeData.id}`}>Editar tienda</Link>
                     </li>
                   </ul>
                 </div>
@@ -147,7 +170,13 @@ export default function ControlPanel() {
                   <h3>Perfil</h3>
                   <div className={styles.profileHeader}>
                     {clientData.profilePic ? (
-                      <img src={clientData.profilePic} alt="Foto de perfil" />
+                      <Image
+                        src={clientData.profilePic}
+                        alt="Foto de perfil"
+                        width={48}
+                        height={48}
+                        className={styles.avatarImg}
+                      />
                     ) : (
                       <div className={styles.defaultAvatar}></div>
                     )}
@@ -155,7 +184,7 @@ export default function ControlPanel() {
                   </div>
                   <ul className={styles.sectionLinks}>
                     <li>
-                      <a href="/my-orders">Mis pedidos</a>
+                      <Link href="/my-orders">Mis pedidos</Link>
                     </li>
                   </ul>
                 </div>
